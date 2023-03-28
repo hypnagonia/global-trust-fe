@@ -14,6 +14,7 @@ body {
 	height: 100%;
 }
 
+
 body {
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
@@ -48,6 +49,11 @@ h6 {
 
 #root {
 	isolation: isolate;
+}
+
+a {
+	text-decoration: none;
+	color: var(--c-white);
 }
 
 /* Globals */

@@ -5,7 +5,7 @@ import {
 	useNavigate,
 	useSearchParams,
 } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	globalRankByHandle,
 	globalRankings,
@@ -16,6 +16,8 @@ import {
 } from '~/api/api'
 import LoadingIndicator from '~/components/LoadingIndicator'
 import Pagination from '~/components/Pagination'
+import { explorerNFTURL } from '~/utils'
+import { getContractMeta } from '~/api/meta'
 
 const DEFAULT_STRATEGY = '6'
 
@@ -26,41 +28,16 @@ export const loader = async ({ request }: LoaderArgs) => {
 		? Number(url.searchParams.get('page'))
 		: 1
 
-	const handle = url.searchParams.get('handle')
-	const handleRank = handle
-		? await globalRankByHandle(strategy, handle)
-		: null
-
-	if (handleRank) {
-		page = Math.ceil(handleRank / PER_PAGE)
-	}
-
 	const [results, count] = await Promise.all([
 		globalRankings(strategy, page),
 		rankingCounts(strategy),
 	])
 
-	// Profile not found
-	if (handle && !handleRank) {
-		return {
-			results: [],
-			page,
-			strategy,
-			count,
-
-			handle,
-			handleRank,
-		}
-	}
-
 	return {
-		results,
+		results: results || [],
 		page,
 		strategy,
-		count,
-
-		handle,
-		handleRank,
+		count
 	}
 }
 
@@ -68,14 +45,31 @@ export default function Index() {
 	const data = useLoaderData<typeof loader>()
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
+	const [contractsMeta, setContractState] = useState(new Map())
 
 	useEffect(() => {
-		if (data.handle) {
-			document
-				.querySelector(`[data-profile-handle="${data.handle}"]`)
-				?.scrollIntoView(true)
+		const run = async () => {
+			console.log('update',data.results)	
+			const contracts = data.results
+			if (!contracts.length) {
+				return
+			}
+
+			// const res = await getContractMeta(contracts[0].address)
+			// one by one to spare api
+			const acc = new Map()
+			for (const contract of contracts ) {
+				const res = await getContractMeta(contract.address)
+				acc.set(contract.address, res)
+			}
+			//data.results.forEach(async (o) => {
+			//	const res = await getContractMeta(o.address)
+			//})
+			setContractState(new Map([...contractsMeta, ...acc]))
 		}
-	}, [data.handle, data.strategy])
+
+		run()
+	}, [data.results])
 
 	return (
 		<main>
@@ -115,9 +109,9 @@ export default function Index() {
 									style={
 										strategy.id === data.strategy
 											? {
-													backgroundColor:
-														'var(--c-naples-yellow)',
-											  }
+												backgroundColor:
+													'var(--c-naples-yellow)',
+											}
 											: undefined
 									}
 									key={strategy.id}
@@ -139,7 +133,6 @@ export default function Index() {
 							type="text"
 							name="handle"
 							placeholder="Search by profile handle"
-							defaultValue={data.handle || ''}
 						/>
 						<input
 							type="hidden"
@@ -151,36 +144,29 @@ export default function Index() {
 							Search
 						</button>
 
-						{data.handle && (
-							<button
-								className="btn"
-								type="button"
-								onClick={() => navigate(`/`)}
-							>
-								Clear
-							</button>
-						)}
+				
 					</Form>
 				</header>
 
 				<div className="profiles-grid">
 					<div>
 						<strong>Score</strong>
-						<strong>NFT</strong>
-						<strong>Address</strong>
+						<strong>NFT Collection</strong>
+						<strong></strong>
+
 					</div>
 					{data.results.map((p) => (
 						<div
-							className={
-								p.name === data.handle ? 'active-row' : ''
-							}
 							key={p.address}
 						>
 							<span>{p.score + 1}</span>
 							<span>
-								{p.name} {p.symbol}
+								<a href={explorerNFTURL(p.address)} target="_blank" rel="noopener noreferrer">
+									{p.name} {p.symbol}
+								</a>
 							</span>
-							<span>{p.address}</span>
+							<span></span>
+
 						</div>
 					))}
 					{data.results.length === 0 && <div>No results</div>}
