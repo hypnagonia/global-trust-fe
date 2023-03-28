@@ -10,7 +10,7 @@ import {
 
 export const meta: MetaFunction = () => ({
 	charset: 'utf-8',
-	title: 'Lens Recommendation',
+	title: 'Global Trust Recommendation',
 	viewport: 'width=device-width,initial-scale=1',
 })
 

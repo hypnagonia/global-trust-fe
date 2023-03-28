@@ -13,7 +13,7 @@ import {
 	rankingCounts,
 	strategies,
 	Strategy,
-} from '~/api'
+} from '~/api/api'
 import LoadingIndicator from '~/components/LoadingIndicator'
 import Pagination from '~/components/Pagination'
 
@@ -94,11 +94,10 @@ export default function Index() {
 			<div className="container">
 				<header>
 					<div className="title">
-						<h1>Lens Global Profile Rankings</h1>
+						<h1>Global Trust Rankings</h1>
 						<p>
 							<small>
-								Four different profile rankings based on social
-								graph data and EigenTrust algorithm.
+								Rankings based on EigenTrust algorithm.
 							</small>
 						</p>
 					</div>
@@ -166,22 +165,22 @@ export default function Index() {
 
 				<div className="profiles-grid">
 					<div>
-						<strong>Rank</strong>
-						<strong>Profile Handle</strong>
-						<strong>Followers</strong>
+						<strong>Score</strong>
+						<strong>NFT</strong>
+						<strong>Address</strong>
 					</div>
 					{data.results.map((p) => (
 						<div
 							className={
-								p.handle === data.handle ? 'active-row' : ''
+								p.name === data.handle ? 'active-row' : ''
 							}
-							key={p.id}
+							key={p.address}
 						>
-							<span>{p.rank + 1}</span>
-							<span data-profile-handle={p.handle}>
-								{p.handle}
+							<span>{p.score + 1}</span>
+							<span>
+								{p.name} {p.symbol}
 							</span>
-							<span>{p.followersCount}</span>
+							<span>{p.address}</span>
 						</div>
 					))}
 					{data.results.length === 0 && <div>No results</div>}

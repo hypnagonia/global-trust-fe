@@ -1,6 +1,6 @@
 import { LoaderArgs } from '@remix-run/node'
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
-import { personalisedRankings } from '~/api'
+import { personalisedRankings } from '~/api/api'
 import LoadingIndicator from '~/components/LoadingIndicator'
 
 export const loader = async ({ request }: LoaderArgs) => {
@@ -49,7 +49,7 @@ export default function Suggest() {
 			<div className="container">
 				<header>
 					<div className="title">
-						<h1>Lens Personalized Search</h1>
+						<h1>Global Trust Personalized Search</h1>
 					</div>
 
 					<Form method="get" className="search">
@@ -82,10 +82,10 @@ export default function Suggest() {
 						<strong>Followers</strong>
 					</div>
 					{data.results.map((p) => (
-						<div key={p.id}>
-							<span>{p.rank + 1}</span>
-							<span>{p.handle}</span>
-							<span>{p.followersCount}</span>
+						<div key={p.address}>
+							<span>{p.score + 1}</span>
+							<span>{p.name}</span>
+							<span>{p.symbol}</span>
 						</div>
 					))}
 					{data.handle && data.results.length === 0 && (
