@@ -1,77 +1,87 @@
 import { LoaderArgs } from '@remix-run/node'
 import {
-	Form,
 	useLoaderData,
 	useNavigate,
-	useSearchParams,
+	useLocation
+
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import {
-	globalRankByHandle,
 	globalRankings,
 	PER_PAGE,
 	rankingCounts,
-	strategies,
-	Strategy,
+	Profile
 } from '~/api/api'
 import LoadingIndicator from '~/components/LoadingIndicator'
 import Pagination from '~/components/Pagination'
 import { explorerNFTURL } from '~/utils'
 import { getContractMeta } from '~/api/meta'
 
-const DEFAULT_STRATEGY = '6'
-
-export const loader = async ({ request }: LoaderArgs) => {
-	const url = new URL(request.url)
-	const strategy = url.searchParams.get('strategy') || DEFAULT_STRATEGY
-	let page = url.searchParams.get('page')
-		? Number(url.searchParams.get('page'))
-		: 1
-
+export const loader = async (location: any) => {
+	const urlParams = new URLSearchParams(location.search);
+	const page = Number(urlParams.get('page'))
 	const [results, count] = await Promise.all([
-		globalRankings(strategy, page),
-		rankingCounts(strategy),
+		globalRankings(page),
+		rankingCounts(),
 	])
 
-	return {
+
+	const data = {
 		results: results || [],
 		page,
-		strategy,
 		count
 	}
+
+	return data
 }
 
 export default function Index() {
-	const data = useLoaderData<typeof loader>()
+	const location = useLocation()
+
+	const [data, setData] = useState({
+		results: [] as Profile[],
+		page: 1,
+		count: 0
+	})
+
+	const [contractsMeta, setContractsMeta] = useState(new Map())
+
 	const navigate = useNavigate()
-	const [searchParams] = useSearchParams()
-	const [contractsMeta, setContractState] = useState({})
 
 	useEffect(() => {
 		const run = async () => {
-
 			const contracts = data.results
-			if (!contracts.length) {
-				return
-			}
 
-			// const res = await getContractMeta(contracts[0].address)
-			// one by one to spare api
-			const acc = {}
+			const acc = new Map()
 			for (const contract of contracts) {
+				const a = contract.address
+
 				try {
-					const res = await getContractMeta(contract.address)
-					// @ts-ignore
-					acc[contract.address] = res
+					const res = await getContractMeta(a)
+					acc.set(a, res)
+
+					setContractsMeta(new Map([...acc]))
+
 				} catch (e) { }
 
 			}
-			setContractState({...contractsMeta, ...acc})
-
 		}
 
 		run()
-	}, [data.results])
+	}, [data, location])
+
+	useEffect(() => {
+		console.log('run once')
+		const run = async () => {
+			// @ts-ignore
+			const d = await loader(location)
+			setData(d)
+		}
+
+		run()
+	}, [location])
+
+	console.log({ contractsMeta: Array.from(contractsMeta) })
 
 	return (
 		<main>
@@ -98,56 +108,6 @@ export default function Index() {
 						</p>
 					</div>
 
-					<div className="strategies">
-						{strategies.map((strategy: Strategy) => {
-							const sp = new URLSearchParams(
-								searchParams.toString(),
-							)
-							sp.set('strategy', strategy.id)
-
-							return (
-								<button
-									className="btn tooltip"
-									style={
-										strategy.id === data.strategy
-											? {
-												backgroundColor:
-													'var(--c-naples-yellow)',
-											}
-											: undefined
-									}
-									key={strategy.id}
-									onClick={() =>
-										navigate(`?${sp.toString()}`)
-									}
-								>
-									{strategy.name}
-									<span className="tooltiptext">
-										{strategy.description}
-									</span>
-								</button>
-							)
-						})}
-					</div>
-
-					<Form method="get" className="search">
-						<input
-							type="text"
-							name="handle"
-							placeholder="Search by profile handle"
-						/>
-						<input
-							type="hidden"
-							name="strategy"
-							value={data.strategy}
-						/>
-
-						<button className="btn" type="submit">
-							Search
-						</button>
-
-
-					</Form>
 				</header>
 
 				<div className="profiles-grid">
@@ -160,22 +120,23 @@ export default function Index() {
 					{data.results.map((p) => (
 						<div
 							key={p.address}
+							style={{ minHeight: 30 }}
 						>
 							<span>{p.score + 1}</span>
-							<span>
-							
-								{
-									//@ts-ignore
-								contractsMeta[p.address] && <>
+
+
+							{
+								contractsMeta.has(p.address) ? <>
 									<img
 										style={{ width: 30 }}
-										//@ts-ignore
-										src={contractsMeta[p.address].image as string} />
-								</>}
-							</span>
+
+										src={contractsMeta.get(p.address).image as string} />
+								</> : <></>}
+
 
 							<span>
 								<a href={explorerNFTURL(p.address)} target="_blank" rel="noopener noreferrer">
+
 									{p.name} {p.symbol}
 								</a>
 							</span>

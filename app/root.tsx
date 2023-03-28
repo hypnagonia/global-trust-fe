@@ -7,6 +7,10 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from '@remix-run/react'
+import {
+	useState,
+	useEffect
+} from 'react'
 
 export const meta: MetaFunction = () => ({
 	charset: 'utf-8',
@@ -21,7 +25,18 @@ export const links: LinksFunction = () => [
 	},
 ]
 
+let isHydrating = true;
+
 export default function App() {
+	let [isHydrated, setIsHydrated] = useState(
+		!isHydrating
+	)
+
+	useEffect(() => {
+		isHydrating = false
+		setIsHydrated(true)
+	}, [])
+
 	return (
 		<html lang="en">
 			<head>
@@ -29,7 +44,7 @@ export default function App() {
 				<Links />
 			</head>
 			<body>
-				<Outlet />
+				{isHydrated && <><Outlet /></>}
 				<ScrollRestoration />
 				<Scripts />
 				<LiveReload />

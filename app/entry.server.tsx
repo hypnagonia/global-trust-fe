@@ -19,3 +19,4 @@ export default function handleRequest(
 		status: responseStatusCode,
 	})
 }
+
