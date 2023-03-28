@@ -60,7 +60,7 @@ export default function Index() {
 					const res = await getContractMeta(a)
 					acc.set(a, res)
 
-					setContractsMeta(new Map([...acc]))
+					setContractsMeta(new Map([...acc, ...contractsMeta]))
 
 				} catch (e) { }
 
@@ -109,48 +109,54 @@ export default function Index() {
 					</div>
 
 				</header>
+				<div className="profiles-container">
+					<div className="profiles-grid">
+						<div>
 
-				<div className="profiles-grid">
-					<div>
-						<strong>Score</strong>
-						<strong></strong>
-						<strong>NFT Collection</strong>
-
-					</div>
-					{data.results.map((p) => (
-						<div
-							key={p.address}
-							style={{ minHeight: 30 }}
-						>
-							<span>{p.score + 1}</span>
+							<strong></strong>
+							<strong>NFT Collection</strong>
 
 
-							{
-								contractsMeta.has(p.address) ? <>
-									<img
-										style={{ width: 30 }}
-
-										src={contractsMeta.get(p.address).image as string} />
-								</> : <></>}
-
-
-							<span>
-								<a href={explorerNFTURL(p.address)} target="_blank" rel="noopener noreferrer">
-
-									{p.name} {p.symbol}
-								</a>
-							</span>
-
+							<strong>Score</strong>
 
 						</div>
-					))}
-					{data.results.length === 0 && <div>No results</div>}
-				</div>
+						<span></span><span></span><span></span>
+						{data.results.map((p) => (
+							<div
+								key={p.address}
+								style={{ minHeight: 30 }}
+							>
 
-				<Pagination
-					numberOfPages={Math.ceil(data.count / PER_PAGE)}
-					currentPage={data.page}
-				/>
+								{
+									contractsMeta.has(p.address) ? <>
+										<img
+											style={{ width: 30 }}
+
+											src={contractsMeta.get(p.address).image as string} />
+									</> : <span></span>}
+
+
+								<span>
+									<a href={explorerNFTURL(p.address)} target="_blank" rel="noopener noreferrer">
+
+										{p.name} {p.symbol}
+									</a>
+								</span>
+
+
+								<span>{p.score + 1}</span>
+
+							</div>
+						))}
+						{data.results.length === 0 && <div>No results</div>}
+					</div>
+
+					<Pagination
+						numberOfPages={Math.ceil(data.count / PER_PAGE)}
+						currentPage={data.page}
+					/>
+
+				</div>
 			</div>
 		</main>
 	)
