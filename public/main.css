@@ -238,7 +238,7 @@ header form {
 
 .profiles-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: 220px 50px 1fr;
 	margin: 40px 0;
 }
 
@@ -249,6 +249,7 @@ header form {
 .profiles-grid span,
 .profiles-grid strong {
 	padding: 8px 0;
+	
 }
 
 .profiles-grid span:first-child {

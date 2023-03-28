@@ -45,11 +45,11 @@ export default function Index() {
 	const data = useLoaderData<typeof loader>()
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
-	const [contractsMeta, setContractState] = useState(new Map())
+	const [contractsMeta, setContractState] = useState({})
 
 	useEffect(() => {
 		const run = async () => {
-			console.log('update',data.results)	
+
 			const contracts = data.results
 			if (!contracts.length) {
 				return
@@ -57,15 +57,17 @@ export default function Index() {
 
 			// const res = await getContractMeta(contracts[0].address)
 			// one by one to spare api
-			const acc = new Map()
-			for (const contract of contracts ) {
-				const res = await getContractMeta(contract.address)
-				acc.set(contract.address, res)
+			const acc = {}
+			for (const contract of contracts) {
+				try {
+					const res = await getContractMeta(contract.address)
+					// @ts-ignore
+					acc[contract.address] = res
+				} catch (e) { }
+
 			}
-			//data.results.forEach(async (o) => {
-			//	const res = await getContractMeta(o.address)
-			//})
-			setContractState(new Map([...contractsMeta, ...acc]))
+			setContractState({...contractsMeta, ...acc})
+
 		}
 
 		run()
@@ -144,15 +146,15 @@ export default function Index() {
 							Search
 						</button>
 
-				
+
 					</Form>
 				</header>
 
 				<div className="profiles-grid">
 					<div>
 						<strong>Score</strong>
-						<strong>NFT Collection</strong>
 						<strong></strong>
+						<strong>NFT Collection</strong>
 
 					</div>
 					{data.results.map((p) => (
@@ -161,11 +163,23 @@ export default function Index() {
 						>
 							<span>{p.score + 1}</span>
 							<span>
+							
+								{
+									//@ts-ignore
+								contractsMeta[p.address] && <>
+									<img
+										style={{ width: 30 }}
+										//@ts-ignore
+										src={contractsMeta[p.address].image as string} />
+								</>}
+							</span>
+
+							<span>
 								<a href={explorerNFTURL(p.address)} target="_blank" rel="noopener noreferrer">
 									{p.name} {p.symbol}
 								</a>
 							</span>
-							<span></span>
+
 
 						</div>
 					))}
